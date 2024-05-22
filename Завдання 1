@@ -1,0 +1,220 @@
+using System;
+using System.Collections.Generic;
+
+// Власний клас винятків для книги
+public class BookException : Exception
+{
+    public BookException(string message) : base(message)
+    {
+    }
+}
+
+// Власний клас винятків для року видання
+public class RikVydannyaException : Exception
+{
+    public RikVydannyaException(string message) : base(message)
+    {
+    }
+}
+
+// Клас Видання
+public class Vydannya
+{
+    // Властивості Назва і Автор
+    public string Nazva { get; set; }
+    public string Avtor { get; set; }
+
+    // Властивість Рік видання з перевіркою на негативне або нульове значення
+    private int rikVydannya;
+    public int RikVydannya
+    {
+        get { return rikVydannya; }
+        set
+        {
+            if (value <= 0)
+            {
+                throw new RikVydannyaException($"Неможливо створити видання – вказано некоректний рік видання: {value}");
+            }
+            rikVydannya = value;
+        }
+    }
+
+    // Конструктор класу Видання
+    public Vydannya(string nazva, string avtor, int rikVydannya)
+    {
+        Nazva = nazva;
+        Avtor = avtor;
+        RikVydannya = rikVydannya;
+    }
+
+    // Метод для формування опису видання
+    public virtual void SformuvatyOpys()
+    {
+        try
+        {
+            // Перевірка на порожні або null значення Назви та Автора
+            if (string.IsNullOrWhiteSpace(Nazva) || string.IsNullOrWhiteSpace(Avtor))
+            {
+                throw new BookException("Назва та автор не можуть бути порожніми.");
+            }
+            // Виведення опису на екран
+            Console.WriteLine($"Назва: {Nazva}, Автор: {Avtor}, Рік видання: {RikVydannya}");
+        }
+        catch (BookException ex)
+        {
+            // Обробка винятку BookException
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+    }
+}
+
+// Клас Книга, що наслідує клас Видання
+public class Knyga : Vydannya
+{
+    // Додаткова властивість Резюме
+    public string Rezume { get; set; }
+
+    // Конструктор класу Книга
+    public Knyga(string nazva, string avtor, int rikVydannya, string rezume)
+        : base(nazva, avtor, rikVydannya)
+    {
+        Rezume = rezume;
+    }
+
+    // Перевизначення методу для формування опису книги
+    public override void SformuvatyOpys()
+    {
+        try
+        {
+            // Виклик базового методу для перевірки Назви та Автора
+            base.SformuvatyOpys();
+
+            // Перевірка на порожнє або null значення Резюме
+            if (string.IsNullOrWhiteSpace(Rezume))
+            {
+                throw new BookException("Резюме не може бути порожнім.");
+            }
+            // Виведення опису на екран
+            Console.WriteLine($"Резюме: {Rezume}");
+        }
+        catch (BookException ex)
+        {
+            // Обробка винятку BookException
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+    }
+}
+
+// Клас Журнал, що наслідує клас Видання
+public class Zhurnal : Vydannya
+{
+    // Властивість для зберігання статей
+    public List<string> Stati { get; } = new List<string>();
+
+    // Конструктор класу Журнал
+    public Zhurnal(string nazva, string avtor, int rikVydannya)
+        : base(nazva, avtor, rikVydannya)
+    {
+    }
+
+    // Метод для додавання статей до журналу
+    public void AddStattya(string stattya)
+    {
+        Stati.Add(stattya);
+    }
+
+    // Перевизначення методу для формування опису журналу
+    public override void SformuvatyOpys()
+    {
+        try
+        {
+            // Виклик базового методу для перевірки Назви та Автора
+            base.SformuvatyOpys();
+
+            // Перевірка на наявність статей у журналі
+            if (Stati.Count == 0)
+            {
+                throw new BookException("Журнал має містити хоча б одну статтю.");
+            }
+            // Виведення опису на екран
+            Console.WriteLine("Статті:");
+            foreach (var stattya in Stati)
+            {
+                Console.WriteLine($"- {stattya}");
+            }
+        }
+        catch (BookException ex)
+        {
+            // Обробка винятку BookException
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+    }
+}
+
+// Клас Відділ (за жанрами)
+public class Viddil
+{
+    // Властивості Назва жанру і Кількість видань
+    public string NazvaZhanru { get; set; }
+    public int KilkistVydan { get; set; }
+}
+
+// Клас Бібліотека
+public class Biblioteka
+{
+    // Властивість Назва бібліотеки
+    public string Nazva { get; set; }
+}
+
+// Основна програма
+class Program
+{
+    static void Main()
+    {
+        // Приклад створення видання та обробки винятку для року видання
+        try
+        {
+            Vydannya vydannya = new Vydannya("Моя книга", "Автор", 2024);
+            vydannya.SformuvatyOpys();
+        }
+        catch (RikVydannyaException ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+
+        // Приклад створення книги та обробки винятків для опису
+        try
+        {
+            Knyga knyga = new Knyga("Книга про C#", "Автор", 2023, "Це резюме книги.");
+            knyga.SformuvatyOpys();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+
+        // Приклад створення журналу та обробки винятків для опису
+        try
+        {
+            Zhurnal zhurnal = new Zhurnal("Технічний журнал", "Редактор", 2023);
+            zhurnal.AddStattya("Стаття 1");
+            zhurnal.AddStattya("Стаття 2");
+            zhurnal.SformuvatyOpys();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+
+        // Приклад створення видання з некоректним роком видання та обробки винятку
+        try
+        {
+            Vydannya nepravylneVydannya = new Vydannya("Неправильна книга", "Автор", -2023);
+        }
+        catch (RikVydannyaException ex)
+        {
+            Console.WriteLine($"Помилка: {ex.Message}");
+        }
+    }
+}
